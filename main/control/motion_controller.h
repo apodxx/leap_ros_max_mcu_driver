@@ -6,6 +6,7 @@
 #include "pid_controller.h"
 #include "differential_kinematics.h"
 #include "mecanum_kinematics.h"
+#include "motion_config.h"
 #include "motion_kinematics.h"
 
 enum class ControlMode { kVelocity, kDirectPwm };
@@ -72,7 +73,7 @@ class MotionController {
   float yaw_offset_ = 0.0f;
   bool need_reset_yaw_offset_ = true;
 
-  float max_accel_rpm_s_ = 200.0f;
+  float max_accel_rpm_s_ = leap_config::motion::kMaxAccelRpmPerS;
 };
 
 #endif // MOTION_CONTROLLER_H_

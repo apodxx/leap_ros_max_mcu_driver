@@ -29,7 +29,7 @@ struct MotionMsg {
 
     int motor_id = 0;          // 0:FL, 1:FR, 2:BL, 3:BR
     float target_motor_v = 0;  // 目标电机速度 (mm/s)
-    int16_t target_motor_pwm = 0;
+    int16_t target_motor_pwm = 0;  // 逻辑 PWM，-1000..1000（正=前进）
     int16_t target_pwm_fl = 0;
     int16_t target_pwm_fr = 0;
     int16_t target_pwm_bl = 0;

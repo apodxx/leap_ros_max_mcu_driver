@@ -5,7 +5,12 @@
 #include "nvs.h"
 
 static const char *kPidCfgNamespace = "pid_cfg";
-static const char *kSpeedPidKey = "speed";
+// v2: the transplanted 68000-count chassis uses the STM32 reference gains
+// (Kp=7.5 on a 0..1000 PWM scale, Ki=0).  A different key intentionally
+// ignores any Kp/Ki/Kd blob saved by the previous chassis/motor firmware, so
+// the new defaults actually take effect after the first boot.  Retuning via
+// /set_speed_pid is persisted under this key.
+static const char *kSpeedPidKey = "speed_v2";
 
 static bool is_valid_pid_config(const PidMsg *config) {
     return config != nullptr &&

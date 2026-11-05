@@ -4,9 +4,18 @@
 static ledc_channel_t next_ledc_channel = LEDC_CHANNEL_0;
 static bool is_ledc_timer_init = false;
 
-At8236Motor::At8236Motor(gpio_num_t in1_pin, gpio_num_t in2_pin)
+// 10-bit resolution (0..1023) gives the STM32 reference's 0..1000 PWM scale
+// enough resolution for its 20% drive deadband and speed PID gains.
+static constexpr int16_t kPwmMaxDuty = 1000;
+// A true 100% high is needed for the AT8236 brake state; 1000/1023 would
+// still leave a short low pulse on every period.
+static constexpr uint32_t kBrakeDuty = 1023;
+
+At8236Motor::At8236Motor(gpio_num_t in1_pin, gpio_num_t in2_pin,
+                         int8_t direction_sign)
     : in1_pin_(in1_pin),
       in2_pin_(in2_pin),
+      direction_sign_(direction_sign >= 0 ? 1 : -1),
       initialized_(false),
       usable_(in1_pin != GPIO_NUM_NC && in2_pin != GPIO_NUM_NC) {
   // 为当前电机的 IN1 和 IN2 分配独立的 PWM 通道
@@ -21,11 +30,11 @@ void At8236Motor::Init() {
   if (!usable_) {
     return;
   }
-  // 只初始化一次定时器 (频率 5000Hz, 8位分辨率 0-255)
+  // 只初始化一次定时器 (频率 20000Hz, 10位分辨率, 使用 0-1000)
   if (!is_ledc_timer_init) {
     ledc_timer_config_t ledc_timer = {};
     ledc_timer.speed_mode      = LEDC_LOW_SPEED_MODE;
-    ledc_timer.duty_resolution = LEDC_TIMER_8_BIT;
+    ledc_timer.duty_resolution = LEDC_TIMER_10_BIT;
     ledc_timer.timer_num       = LEDC_TIMER_0;
     ledc_timer.freq_hz         = 20000;
     ledc_timer.clk_cfg         = LEDC_AUTO_CLK;
@@ -57,8 +66,13 @@ void At8236Motor::SetSpeed(int16_t speed) {
     return;
   }
 
-  if (speed > 255) speed = 255;
-  if (speed < -255) speed = -255;
+  if (speed > kPwmMaxDuty) speed = kPwmMaxDuty;
+  if (speed < -kPwmMaxDuty) speed = -kPwmMaxDuty;
+
+  // Apply the installation polarity only after clamping so a -1 sign can
+  // never overflow int16_t.  The rest of the firmware always uses signed,
+  // logical speed: positive = wheel drives forward.
+  speed = static_cast<int16_t>(speed * direction_sign_);
 
   if (speed > 0) {
     // 正转：IN2 输出 0，IN1 输出 PWM
@@ -87,8 +101,8 @@ void At8236Motor::Brake() {
   }
 
   // AT8236 双高电平为刹车
-  ledc_set_duty(LEDC_LOW_SPEED_MODE, channel_in1_, 255);
+  ledc_set_duty(LEDC_LOW_SPEED_MODE, channel_in1_, kBrakeDuty);
   ledc_update_duty(LEDC_LOW_SPEED_MODE, channel_in1_);
-  ledc_set_duty(LEDC_LOW_SPEED_MODE, channel_in2_, 255);
+  ledc_set_duty(LEDC_LOW_SPEED_MODE, channel_in2_, kBrakeDuty);
   ledc_update_duty(LEDC_LOW_SPEED_MODE, channel_in2_);
 }

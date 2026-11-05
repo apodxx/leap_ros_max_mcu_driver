@@ -1,10 +1,12 @@
 #include "board.h"
 #include "board_config.h"
+#include "motion_config.h"
 #include "system_globals.h"
 #include "esp_log.h"
 
 static const char* TAG = "BOARD_INIT";
 namespace board_cfg = leap_config::board;
+namespace motion_cfg = leap_config::motion;
 
 // GPIO0/BOOT is a strapping/download pin. Using it as a runtime button is risky,
 // but it is enabled here intentionally for the BOOT double-click action.
@@ -13,10 +15,16 @@ namespace board_cfg = leap_config::board;
 Lsm6ds3Imu imu(board_cfg::kImuI2cPort, board_cfg::kImuSdaPin, board_cfg::kImuSclPin);
 
 // Map each motor's output channels to the configured IN1/IN2 pins.
-At8236Motor motor_fl(board_cfg::kMotorFlIn1, board_cfg::kMotorFlIn2);
-At8236Motor motor_fr(board_cfg::kMotorFrIn1, board_cfg::kMotorFrIn2);
-At8236Motor motor_bl(board_cfg::kMotorBlIn1, board_cfg::kMotorBlIn2);
-At8236Motor motor_br(board_cfg::kMotorBrIn1, board_cfg::kMotorBrIn2);
+// kMotorSigns carries the installation polarity of the transplanted chassis:
+// [FL, FR, BL, BR], positive logical speed always means "wheel forward".
+At8236Motor motor_fl(board_cfg::kMotorFlIn1, board_cfg::kMotorFlIn2,
+                     motion_cfg::kMotorSigns[0]);
+At8236Motor motor_fr(board_cfg::kMotorFrIn1, board_cfg::kMotorFrIn2,
+                     motion_cfg::kMotorSigns[1]);
+At8236Motor motor_bl(board_cfg::kMotorBlIn1, board_cfg::kMotorBlIn2,
+                     motion_cfg::kMotorSigns[2]);
+At8236Motor motor_br(board_cfg::kMotorBrIn1, board_cfg::kMotorBrIn2,
+                     motion_cfg::kMotorSigns[3]);
 
 // 实例化编码器
 QuadratureEncoder encoder_fl(board_cfg::kEncoderFlA, board_cfg::kEncoderFlB);
@@ -39,6 +47,18 @@ ButtonDriver io0_button(board_cfg::kIo0ButtonPin, true);
 // ================= 统一初始化逻辑 =================
 void board_init() {
     ESP_LOGI(TAG, "Initializing hardware...");
+    ESP_LOGI(TAG,
+             "Chassis config: wheelbase=%.1fmm track=%.1fmm wheel=%.1fmm counts/rev=%.0f",
+             motion_cfg::kMecanumWheelbaseMm,
+             motion_cfg::kMecanumTrackWidthMm,
+             motion_cfg::kMecanumWheelDiameterMm,
+             motion_cfg::kEncoderCountsPerWheelRev);
+    ESP_LOGI(TAG, "Motor signs: FL=%d FR=%d BL=%d BR=%d",
+             motion_cfg::kMotorSigns[0], motion_cfg::kMotorSigns[1],
+             motion_cfg::kMotorSigns[2], motion_cfg::kMotorSigns[3]);
+    ESP_LOGI(TAG, "Encoder signs: FL=%d FR=%d BL=%d BR=%d",
+             motion_cfg::kEncoderSigns[0], motion_cfg::kEncoderSigns[1],
+             motion_cfg::kEncoderSigns[2], motion_cfg::kEncoderSigns[3]);
     robot.SetChassisType(system_globals().runtime.chassis_type);
     motor_fl.Init(); encoder_fl.Init();
     motor_fr.Init(); encoder_fr.Init();

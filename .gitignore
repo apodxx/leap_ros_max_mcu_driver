@@ -10,3 +10,25 @@ sdkconfig.old
 .idea/
 .codex/
 .agents/
+
+# Keil MDK / IAR build outputs (STM32 reference project)
+*.o
+*.obj
+*.d
+*.dep
+*.axf
+*.hex
+*.lib
+*.crf
+*.iex
+*.lst
+*.lnp
+*.htm
+*.exe
+*.uvguix.*
+*.bak
+
+# CMSIS DSP is not referenced by the STM32H743 Keil project.  It is a large
+# CubeMX package payload (prebuilt .a/.lib plus examples/tests), so keep it out
+# of the repository; the Keil build only needs CMSIS Core/Device and the HAL.
+底层驱动/Drivers/CMSIS/DSP/

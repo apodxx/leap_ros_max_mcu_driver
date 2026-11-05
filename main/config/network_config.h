@@ -22,8 +22,11 @@ static constexpr const char kRuntimeCfgChassisTypeKey[] = "chassis";
 static constexpr const char kRuntimeCfgMicroRosAgentIpKey[] = "uros_ip";
 static constexpr const char kRuntimeCfgMicroRosAgentPortKey[] = "uros_port";
 
-static constexpr const char kDefaultStaSsid[] = "Maturo";
-static constexpr const char kDefaultStaPassword[] = "maturo2026";
+// Public-repo defaults: do not commit real Wi-Fi credentials.  A provisioned
+// device uses its NVS credentials; a blank device falls back to the SoftAP
+// provisioning portal instead of connecting to a hard-coded network.
+static constexpr const char kDefaultStaSsid[] = "YOUR_WIFI_SSID";
+static constexpr const char kDefaultStaPassword[] = "YOUR_WIFI_PASSWORD";
 static constexpr const char kDefaultMicroRosAgentIp[] = LEAP_CONFIG_DEFAULT_MICROROS_AGENT_IP;
 static constexpr uint16_t kDefaultMicroRosAgentPort = 8888;
 static constexpr uint16_t kMicroRosLocalPort = 8888;

@@ -125,14 +125,24 @@ void MotionController::Drive(float linear_x, float linear_y, float angular_z) {
 }
 
 int16_t MotionController::ApplyDeadband(float target_vel, float pid_output) {
+  float out = pid_output;
   if (std::abs(target_vel) > 0.1f) {
-    float out = pid_output;
-    if (std::abs(out) < motion_cfg::kMotorPwmDeadband) {
-      out = (out >= 0.0f) ? motion_cfg::kMotorPwmDeadband : -motion_cfg::kMotorPwmDeadband;
+    // Match the STM32 reference's WheelOutput_Update(): the fixed drive floor
+    // is only applied when the PID output would drive in the commanded
+    // direction.  A negative output while the wheel is overspeeding must stay
+    // negative (braking) instead of being flipped into a forward command.
+    if (target_vel > 0.0f && out > 0.0f &&
+        out < motion_cfg::kMotorPwmDeadband) {
+      out = motion_cfg::kMotorPwmDeadband;
+    } else if (target_vel < 0.0f && out < 0.0f &&
+               out > -motion_cfg::kMotorPwmDeadband) {
+      out = -motion_cfg::kMotorPwmDeadband;
     }
-    return static_cast<int16_t>(std::clamp(out, -motion_cfg::kMaxPwm, motion_cfg::kMaxPwm));
+  } else {
+    out = 0.0f;
   }
-  return 0;
+  return static_cast<int16_t>(
+      std::clamp(out, -motion_cfg::kMaxPwm, motion_cfg::kMaxPwm));
 }
 
 void MotionController::Update(float dt, float current_imu_yaw_rad) {

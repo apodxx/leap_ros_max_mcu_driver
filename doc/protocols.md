@@ -45,14 +45,15 @@ front right (FR), back left (BL), back right (BR). Body coordinates
 follow ROS conventions: positive `x` is forward, positive `y` is left, and
 positive `angular.z` is counter-clockwise.
 
-Geometry:
+Geometry (transplanted chassis, taken from the STM32H743 reference project in
+`底层驱动/`):
 
 | Item | Value |
 | --- | --- |
 | Wheel diameter | `80 mm` |
-| Wheelbase | `175 mm` |
-| Track width | `170 mm` |
-| Motor reduction ratio | `46.8:1` |
+| Wheelbase (front/rear) | `300 mm` |
+| Track width (left/right) | `350 mm` |
+| Encoder resolution | `68000 counts per wheel revolution` (4x quadrature and gearbox included) |
 
 For `a = wheelbase / 2 + track_width / 2`, inverse kinematics are:
 
@@ -77,7 +78,7 @@ into planar odometry.
 
 In `differential` mode, `linear.y` is ignored, the left wheels share one target,
 the right wheels share one target, and reported lateral velocity is zero. The
-effective differential track width is `340 mm`.
+effective differential track width is `350 mm`.
 
 ## micro-ROS Interface
 
@@ -106,7 +107,7 @@ velocity units as `/cmd_vel`; it does not overwrite the navigation command.
 | Gamepad input | Motion command | Maximum |
 | --- | --- | --- |
 | Left stick forward/back channel | `linear.x` | `300 mm/s` (`0.3 m/s`) |
-| Right stick turn channel | `angular.z` | `2.5 rad/s` |
+| Right stick turn channel | `angular.z` | `1.0 rad/s` |
 
 The raw stick range is `-127..127` with a dead zone of 12. A non-zero stick
 acts as a manual override and is published at 20 Hz. When the sticks return to
@@ -201,6 +202,13 @@ ros2 topic hz /battery_state
 | --- | --- | --- |
 | `/set_speed_pid` | `leap_interfaces/srv/SetSpeedPid` | Applies and persists wheel speed PID gains |
 | `/get_speed_pid` | `leap_interfaces/srv/GetSpeedPid` | Returns current wheel speed PID gains |
+
+Speed PID gains use the 0..1000 PWM scale. Defaults follow the STM32H743
+reference chassis: `Kp=7.5`, `Ki=0`, `Kd=0`. If the chassis shows a steady-state
+speed error, add a small `Ki` (for example 0.5..2.0) with `/set_speed_pid`.
+The parameters are persisted under NVS key `pid_cfg/speed_v2`, so gains saved
+by the previous chassis firmware are intentionally ignored. See
+[四驱麦轮底盘参数适配.md](四驱麦轮底盘参数适配.md) for calibration.
 
 Only the selected micro-ROS transport is active. UDP starts after Wi-Fi STA
 connects; UART starts after a 5-second startup delay when UART mode is selected.

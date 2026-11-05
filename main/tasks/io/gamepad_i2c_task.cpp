@@ -22,7 +22,9 @@ constexpr uint8_t kGamepadPollCommand[] = {0x55, 0xBB};
 constexpr int kAxisDeadzone = 12;
 constexpr int kAxisFullScale = 127;
 constexpr float kMaxLinearSpeedMms = 300.0f;
-constexpr float kMaxAngularSpeedRadS = 2.5f;
+// STM32 reference manual limit: NavController_SetManualVelocity() clamps to
+// 0.3 m/s and 1.0 rad/s.  Keep the same envelope on the larger chassis.
+constexpr float kMaxAngularSpeedRadS = 1.0f;
 
 typedef struct {
     uint8_t header1;
