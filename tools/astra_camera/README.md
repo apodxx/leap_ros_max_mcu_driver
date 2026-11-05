@@ -7,6 +7,20 @@
 
 ---
 
+## 0. SDK 压缩包
+
+`sdk/OpenNI_SDK_ROS2_v1.0.2_20220809_b32e47_linux.tar.gz`（7.1 MB，
+sha256 `05dda4507620e91408249b1c139b0ba25d4ed3cb8a402905a10fda719dbaaf44`）是 Orbbec 官方
+`OpenNI_SDK_ROS2 v1.0.2`，里面是 `ros2_astra_camera/`（`astra_camera` + `astra_camera_msgs` 两个包）。
+版权归 Orbbec，这里只是方便直接编译，正式分发请以官方发布为准。
+
+```bash
+mkdir -p ~/ros2_ws/src
+tar xzf tools/astra_camera/sdk/OpenNI_SDK_ROS2_v1.0.2_20220809_b32e47_linux.tar.gz -C ~/ros2_ws/src/
+```
+
+---
+
 ## 1. 硬件识别
 
 ```
