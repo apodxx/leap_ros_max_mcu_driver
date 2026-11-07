@@ -41,7 +41,7 @@ static constexpr int kMicroRosUartReadMaxWaitMs = 5;
 static constexpr uint32_t kMicroRosUartStartupDelayMs = 8000;
 
 static constexpr uart_port_t kLidarUartPort = UART_NUM_1;
-static constexpr int kLidarBaudRate = 230400;
+static constexpr int kLidarBaudRate = 115200;
 static constexpr uint32_t kLidarTaskPeriodMs = 10;
 
 }  // namespace network

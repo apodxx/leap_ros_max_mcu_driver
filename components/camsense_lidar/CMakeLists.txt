@@ -1,5 +1,5 @@
 idf_component_register(
     SRCS "camsense_lidar.cpp"
     INCLUDE_DIRS "."
-    REQUIRES driver freertos
+    REQUIRES driver freertos esp_driver_uart esp_driver_gpio
 )

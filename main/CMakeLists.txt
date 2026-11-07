@@ -56,7 +56,7 @@ idf_component_register(
         button_driver
         lsm6ds3_driver
         pid_controller
-        ldstl26_lidar
+        camsense_lidar
         status_led
         camera_i2c_client
         i2c_bus_lock
